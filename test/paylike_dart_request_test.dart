@@ -1,16 +1,38 @@
+import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:paylike_dart_request/paylike_dart_request.dart';
 import 'package:test/test.dart';
 
+import 'paylike_dart_request_test.mocks.dart';
+
+@GenerateMocks([http.Client])
 void main() {
-  group('A group of tests', () {
-    final awesome = Awesome();
+  const TEST_URL = 'http://foo';
+  group('Requester setup tests', () {
+    final requester = PaylikeRequester();
 
     setUp(() {
       // Additional setup goes here.
     });
 
-    test('First Test', () {
-      expect(awesome.isAwesome, isTrue);
+    test('Should be able to attach essential headers to requests', () async {
+      var client = MockClient();
+      when(client.get(Uri.parse(TEST_URL), headers: {
+        'X-Client': 'dart-1',
+        'Accept-Version': '1',
+      })).thenAnswer((_) => Future.value(http.Response('Foo', 200)));
+      /*   if (headers == null) {
+          throw ('Headers cannot be null');
+        }
+        expect(headers['X-Client'], 'dart-1');
+        expect(headers['Accept-Version'], '1');
+        expect(url, Uri.parse('http://foo'));*/
+      var opts = RequestOptions().setClient(client).setVersion(1);
+      var response = await requester.request(TEST_URL, opts);
+      expect(response.body, 'Foo');
+      expect(response.statusCode, 200);
     });
   });
 }
