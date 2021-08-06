@@ -7,6 +7,13 @@ import 'package:test/test.dart';
 
 import 'paylike_dart_request_test.mocks.dart';
 
+class Mocker {
+  MockHttpClient client = MockHttpClient();
+  MockHttpClientRequest request = MockHttpClientRequest();
+  MockHttpHeaders headers = MockHttpHeaders();
+  MockHttpClientResponse response = MockHttpClientResponse();
+}
+
 @GenerateMocks([
   io.HttpClient,
   io.HttpClientRequest,
@@ -23,81 +30,61 @@ void main() {
     });
 
     test('Should be able to attach essential headers to requests', () async {
-      var client = MockHttpClient();
-      var mockRequest = MockHttpClientRequest();
-      var mockHeaders = MockHttpHeaders();
-      var mockResponse = MockHttpClientResponse();
-
-      when(client.getUrl(Uri.parse(TEST_URL))).thenAnswer((_) {
-        return Future.value(mockRequest);
+      var mocker = Mocker();
+      when(mocker.client.getUrl(Uri.parse(TEST_URL))).thenAnswer((_) {
+        return Future.value(mocker.request);
       });
-      when(mockRequest.headers).thenReturn(mockHeaders);
-      when(mockHeaders.add('X-Client', 'dart-1')).thenReturn(true);
-      when(mockHeaders.add('Accept-Version', '1')).thenReturn(true);
-      when(mockRequest.close()).thenAnswer((_) {
-        return Future.value(mockResponse);
+      when(mocker.request.headers).thenReturn(mocker.headers);
+      when(mocker.headers.add('X-Client', 'dart-1')).thenReturn(true);
+      when(mocker.headers.add('Accept-Version', '1')).thenReturn(true);
+      when(mocker.request.close()).thenAnswer((_) {
+        return Future.value(mocker.response);
       });
-      when(mockResponse.statusCode).thenReturn(200);
-      var opts = RequestOptions().setClient(client).setVersion(1);
-      var response = await requester.request(TEST_URL, opts);
-      expect(response.statusCode, 200);
+      var opts = RequestOptions().setClient(mocker.client).setVersion(1);
+      await requester.request(TEST_URL, opts);
     });
 
     test('Should be able to attach queries', () async {
-      var client = MockHttpClient();
-      var mockRequest = MockHttpClientRequest();
-      var mockHeaders = MockHttpHeaders();
-      var mockResponse = MockHttpClientResponse();
-
+      var mocker = Mocker();
       var uri = Uri.parse(TEST_URL);
       uri.replace(queryParameters: {
         'foo': 'bar',
       });
 
-      when(client.getUrl(uri)).thenAnswer((_) {
-        return Future.value(mockRequest);
+      when(mocker.client.getUrl(uri)).thenAnswer((_) {
+        return Future.value(mocker.request);
       });
-      when(mockRequest.headers).thenReturn(mockHeaders);
-      when(mockHeaders.add('X-Client', 'dart-1')).thenReturn(true);
-      when(mockHeaders.add('Accept-Version', '1')).thenReturn(true);
-      when(mockRequest.close()).thenAnswer((_) {
-        return Future.value(mockResponse);
+      when(mocker.request.headers).thenReturn(mocker.headers);
+      when(mocker.headers.add('X-Client', 'dart-1')).thenReturn(true);
+      when(mocker.headers.add('Accept-Version', '1')).thenReturn(true);
+      when(mocker.request.close()).thenAnswer((_) {
+        return Future.value(mocker.response);
       });
-      when(mockResponse.statusCode).thenReturn(200);
-      var opts = RequestOptions().setClient(client).setVersion(1);
-      var response = await requester.request(TEST_URL, opts);
-      expect(response.statusCode, 200);
+      var opts = RequestOptions().setClient(mocker.client).setVersion(1);
+      await requester.request(TEST_URL, opts);
     });
+
     test('Should be able to send data', () async {
-      var client = MockHttpClient();
-      var mockRequest = MockHttpClientRequest();
-      var mockHeaders = MockHttpHeaders();
-      var mockResponse = MockHttpClientResponse();
+      var mocker = Mocker();
 
       var uri = Uri.parse(TEST_URL);
-      uri.replace(queryParameters: {
-        'foo': 'bar',
+      when(mocker.client.postUrl(uri)).thenAnswer((_) {
+        return Future.value(mocker.request);
       });
-
-      when(client.postUrl(uri)).thenAnswer((_) {
-        return Future.value(mockRequest);
-      });
-      when(mockRequest.write({'foo': 'bar'})).thenReturn(true);
-      when(mockRequest.headers).thenReturn(mockHeaders);
-      when(mockHeaders.add('X-Client', 'dart-1')).thenReturn(true);
-      when(mockHeaders.add('Accept-Version', '1')).thenReturn(true);
-      when(mockHeaders.add('Content-Type', 'application/json'))
+      when(mocker.request.write({'foo': 'bar'})).thenReturn(true);
+      when(mocker.request.headers).thenReturn(mocker.headers);
+      when(mocker.headers.add('X-Client', 'dart-1')).thenReturn(true);
+      when(mocker.headers.add('Accept-Version', '1')).thenReturn(true);
+      when(mocker.headers.add('Content-Type', 'application/json'))
           .thenReturn(true);
-      when(mockRequest.close()).thenAnswer((_) {
-        return Future.value(mockResponse);
+      when(mocker.request.close()).thenAnswer((_) {
+        return Future.value(mocker.response);
       });
-      when(mockResponse.statusCode).thenReturn(200);
-      var opts = RequestOptions().setClient(client).setVersion(1).setData({
+      var opts =
+          RequestOptions().setClient(mocker.client).setVersion(1).setData({
         'foo': 'bar',
       });
-      var response = await requester.request(TEST_URL, opts);
-      expect(response.statusCode, 200);
-      expect(response.statusCode, 200);
+      await requester.request(TEST_URL, opts);
     });
   });
 }
