@@ -1,25 +1,33 @@
-import 'package:http/http.dart' as http;
+import 'dart:async';
+
 import 'package:sprintf/sprintf.dart';
+import 'dart:io' as io;
 
 // Provides configuraton options for PaylikeRequester
 class RequestOptions {
   Map<String, String>? query;
   int? version;
   Object? data;
-  http.Client client = http.Client();
+  Duration timeout = Duration(seconds: 20);
+  io.HttpClient client = io.HttpClient();
   String clientId = 'dart-1';
   String method = 'GET';
   RequestOptions();
   RequestOptions.fromClientId(String clientId) {
     this.clientId = clientId;
   }
-  RequestOptions setClient(http.Client client) {
+  RequestOptions setClient(io.HttpClient client) {
     this.client = client;
     return this;
   }
 
   RequestOptions setQuery(Map<String, String> q) {
     query = q;
+    return this;
+  }
+
+  RequestOptions setTimeout(Duration timeout) {
+    this.timeout = timeout;
     return this;
   }
 
@@ -40,33 +48,48 @@ class RequestOptions {
   }
 }
 
+void setHeadersOnRequest(
+    io.HttpClientRequest request, Map<String, String> headers) {}
+
 // Executes requests
 class PaylikeRequester {
-  Future<http.Response> request(String endpoint, RequestOptions? opts) async {
+  Future<io.HttpClientResponse> request(
+      String endpoint, RequestOptions? opts) async {
     opts ??= RequestOptions();
     var url = Uri.parse(endpoint);
     if (opts.query != null) {
       url.replace(queryParameters: opts.query);
     }
-    var essentialHeaders = {
+    var headers = {
       'X-Client': opts.clientId,
       'Accept-Version': opts.version.toString(),
     };
-    http.Response response;
+
+    io.HttpClientRequest request;
     switch (opts.method) {
       case 'GET':
-        response = await opts.client.get(url, headers: essentialHeaders);
+        request = await opts.client.getUrl(url);
         break;
       case 'POST':
-        response = await opts.client.post(url,
-            headers: {
-              ...essentialHeaders,
-              'Content-Type': 'application/json',
-            },
-            body: opts.data);
+        request = await opts.client.postUrl(url);
+        headers = {
+          ...headers,
+          'Content-Type': 'application/json',
+        };
+        request.write(opts.data);
         break;
       default:
         throw ('Unexpected error');
+    }
+    headers.forEach((key, value) {
+      request.headers.add(key, value);
+    });
+    io.HttpClientResponse response;
+    try {
+      response = await request.close().timeout(opts.timeout);
+    } on TimeoutException catch (_) {
+      request.abort();
+      rethrow;
     }
     return response;
   }
