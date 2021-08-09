@@ -1,7 +1,7 @@
 import 'package:paylike_dart_request/paylike_dart_request.dart';
 
 void main() {
-  var requester = PaylikeRequester().setLog((Object o) => print(o));
+  var requester = PaylikeRequester().setLog((dynamic o) => print(o));
   var opts = RequestOptions.fromClientId('dart-1')
       .setQuery({
         'foo': 'bar',

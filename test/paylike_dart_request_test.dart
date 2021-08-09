@@ -3,6 +3,7 @@ import 'dart:io' as io;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:paylike_dart_request/paylike_dart_request.dart';
+import 'package:sprintf/sprintf.dart';
 import 'package:test/test.dart';
 
 import 'paylike_dart_request_test.mocks.dart';
@@ -23,10 +24,18 @@ class Mocker {
 void main() {
   const TEST_URL = 'http://foo';
   group('Requester setup tests', () {
-    final requester = PaylikeRequester();
+    final requester = PaylikeRequester.withLog((dynamic o) => null);
 
     setUp(() {
       // Additional setup goes here.
+    });
+
+    test('Should not be able to set a version under 1', () async {
+      expect(
+          () => RequestOptions().setVersion(0),
+          throwsA(sprintf(
+              'Unexpected "version", got "%d" expected a positive integer',
+              [0])));
     });
 
     test('Should be able to attach essential headers to requests', () async {
