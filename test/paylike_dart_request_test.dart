@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:io';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:paylike_dart_request/paylike_dart_request.dart';
+import 'package:shelf/shelf.dart';
+import 'package:shelf/shelf_io.dart';
 import 'package:sprintf/sprintf.dart';
 import 'package:test/test.dart';
 
@@ -15,6 +19,15 @@ class Mocker {
   MockHttpClientResponse response = MockHttpClientResponse();
 }
 
+Future<String> readResponse(HttpClientResponse response) {
+  final completer = Completer<String>();
+  final contents = StringBuffer();
+  response.transform(utf8.decoder).listen((data) {
+    contents.write(data);
+  }, onDone: () => completer.complete(contents.toString()));
+  return completer.future;
+}
+
 @GenerateMocks([
   io.HttpClient,
   io.HttpClientRequest,
@@ -25,10 +38,6 @@ void main() {
   const TEST_URL = 'http://foo';
   group('Requester setup tests', () {
     final requester = PaylikeRequester.withLog((dynamic o) => null);
-
-    setUp(() {
-      // Additional setup goes here.
-    });
 
     test('Should not be able to set a version under 1', () async {
       expect(
@@ -115,6 +124,29 @@ void main() {
       });
       var opts = RequestOptions().setClient(mocker.client).setVersion(1);
       await loggingRequester.request(TEST_URL, opts);
+    });
+  });
+
+  group('Requester timeout', () {
+    final requester = PaylikeRequester();
+
+    test('Should work seemlessly', () async {
+      var handler = Pipeline().addHandler((request) async {
+        expect(request.headers['X-Client'], 'dart-1');
+        expect(request.headers['Accept-Version'], '1');
+        await Future.delayed(Duration(seconds: 4));
+        return Response(200);
+      });
+      var server = await serve(handler, 'localhost', 8080);
+
+      var opts = RequestOptions.v1().setTimeout(Duration(seconds: 2));
+      try {
+        await requester.request('http://localhost:8080', opts);
+        fail('exception is not thrown');
+      } catch (e) {
+        e is TimeoutException;
+      }
+      await server.close(force: true);
     });
   });
 }

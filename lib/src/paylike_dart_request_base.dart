@@ -5,6 +5,9 @@ import 'dart:io' as io;
 
 // Provides configuraton options for PaylikeRequester
 class RequestOptions {
+  RequestOptions.v1() {
+    version = 1;
+  }
   Map<String, String>? query;
   int? version;
   Object? data;
@@ -102,10 +105,14 @@ class PaylikeRequester {
         'url': url,
         'timeout': opts.timeout
       });
-      response = await request.close().timeout(opts.timeout);
+      if (opts.timeout.inSeconds == 0) {
+        response = await request.close();
+      } else {
+        response = await request.close().timeout(opts.timeout);
+      }
     } on TimeoutException catch (_) {
       request.abort();
-      rethrow;
+      throw TimeoutException('Request timed out', opts.timeout);
     }
     return response;
   }
