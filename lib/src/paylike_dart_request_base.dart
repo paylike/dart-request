@@ -53,6 +53,16 @@ void setHeadersOnRequest(
 
 // Executes requests
 class PaylikeRequester {
+  Function log = (dynamic o) => print(o);
+  PaylikeRequester();
+  PaylikeRequester.withLog(Function log) {
+    this.log = log;
+  }
+  PaylikeRequester setLog(Function log) {
+    this.log = log;
+    return this;
+  }
+
   Future<io.HttpClientResponse> request(
       String endpoint, RequestOptions? opts) async {
     opts ??= RequestOptions();
@@ -86,6 +96,12 @@ class PaylikeRequester {
     });
     io.HttpClientResponse response;
     try {
+      log({
+        't': 'request',
+        'method': opts.method,
+        'url': url,
+        'timeout': opts.timeout
+      });
       response = await request.close().timeout(opts.timeout);
     } on TimeoutException catch (_) {
       request.abort();

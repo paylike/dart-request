@@ -86,5 +86,26 @@ void main() {
       });
       await requester.request(TEST_URL, opts);
     });
+
+    test('Should be able to set logging', () async {
+      var loggingRequester = PaylikeRequester.withLog((dynamic o) {
+        expect(o['t'], 'request');
+        expect(o['method'], 'GET');
+        expect(o['url'], Uri.parse(TEST_URL));
+        expect(o['timeout'], Duration(seconds: 20));
+      });
+      var mocker = Mocker();
+      when(mocker.client.getUrl(Uri.parse(TEST_URL))).thenAnswer((_) {
+        return Future.value(mocker.request);
+      });
+      when(mocker.request.headers).thenReturn(mocker.headers);
+      when(mocker.headers.add('X-Client', 'dart-1')).thenReturn(true);
+      when(mocker.headers.add('Accept-Version', '1')).thenReturn(true);
+      when(mocker.request.close()).thenAnswer((_) {
+        return Future.value(mocker.response);
+      });
+      var opts = RequestOptions().setClient(mocker.client).setVersion(1);
+      await loggingRequester.request(TEST_URL, opts);
+    });
   });
 }
