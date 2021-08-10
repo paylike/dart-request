@@ -19,15 +19,6 @@ class Mocker {
   MockHttpClientResponse response = MockHttpClientResponse();
 }
 
-Future<String> readResponse(HttpClientResponse response) {
-  final completer = Completer<String>();
-  final contents = StringBuffer();
-  response.transform(utf8.decoder).listen((data) {
-    contents.write(data);
-  }, onDone: () => completer.complete(contents.toString()));
-  return completer.future;
-}
-
 @GenerateMocks([
   io.HttpClient,
   io.HttpClientRequest,
