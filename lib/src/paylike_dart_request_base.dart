@@ -3,6 +3,16 @@ import 'dart:async';
 import 'package:sprintf/sprintf.dart';
 import 'dart:io' as io;
 
+class RateLimitException implements Exception {
+  late String cause;
+  RateLimitException() {
+    cause = 'Request got rate limited';
+  }
+  RateLimitException.forTime(String time) {
+    cause = sprintf('Request got rate limited for %s', [time]);
+  }
+}
+
 // Provides configuraton options for PaylikeRequester
 class RequestOptions {
   RequestOptions.v1() {
@@ -113,6 +123,17 @@ class PaylikeRequester {
     } on TimeoutException catch (_) {
       request.abort();
       throw TimeoutException('Request timed out', opts.timeout);
+    }
+    switch (response.statusCode) {
+      case 204:
+        // TODO: No content?
+        break;
+      case 429:
+        var retryHeaders = response.headers['retry-after'];
+        if (retryHeaders != null && retryHeaders.length == 1) {
+          throw RateLimitException.forTime(retryHeaders[0]);
+        }
+        throw RateLimitException();
     }
     return response;
   }

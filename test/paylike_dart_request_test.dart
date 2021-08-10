@@ -49,6 +49,7 @@ void main() {
       when(mocker.request.close()).thenAnswer((_) {
         return Future.value(mocker.response);
       });
+      when(mocker.response.statusCode).thenReturn(200);
       var opts = RequestOptions().setClient(mocker.client).setVersion(1);
       await requester.request(TEST_URL, opts);
     });
@@ -69,6 +70,7 @@ void main() {
       when(mocker.request.close()).thenAnswer((_) {
         return Future.value(mocker.response);
       });
+      when(mocker.response.statusCode).thenReturn(200);
       var opts = RequestOptions().setClient(mocker.client).setVersion(1);
       await requester.request(TEST_URL, opts);
     });
@@ -89,6 +91,7 @@ void main() {
       when(mocker.request.close()).thenAnswer((_) {
         return Future.value(mocker.response);
       });
+      when(mocker.response.statusCode).thenReturn(200);
       var opts =
           RequestOptions().setClient(mocker.client).setVersion(1).setData({
         'foo': 'bar',
@@ -113,8 +116,31 @@ void main() {
       when(mocker.request.close()).thenAnswer((_) {
         return Future.value(mocker.response);
       });
+      when(mocker.response.statusCode).thenReturn(200);
       var opts = RequestOptions().setClient(mocker.client).setVersion(1);
       await loggingRequester.request(TEST_URL, opts);
+    });
+
+    test('Should be able to throw an error if rate limiting as an issue',
+        () async {
+      var mocker = Mocker();
+      when(mocker.client.getUrl(Uri.parse(TEST_URL))).thenAnswer((_) {
+        return Future.value(mocker.request);
+      });
+      when(mocker.request.headers).thenReturn(mocker.headers);
+      when(mocker.headers.add('X-Client', 'dart-1')).thenReturn(true);
+      when(mocker.headers.add('Accept-Version', '1')).thenReturn(true);
+      when(mocker.request.close()).thenAnswer((_) {
+        return Future.value(mocker.response);
+      });
+      when(mocker.response.statusCode).thenReturn(429);
+      var opts = RequestOptions().setClient(mocker.client).setVersion(1);
+      try {
+        await requester.request(TEST_URL, opts);
+        fail('exception is not thrown');
+      } catch (e) {
+        e is RateLimitException;
+      }
     });
   });
 
