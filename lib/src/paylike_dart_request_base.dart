@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:sprintf/sprintf.dart';
 import 'dart:io' as io;
 
+// Indicates that a rate limit has been reached during a request
 class RateLimitException implements Exception {
   late String cause;
   String? time;
@@ -11,6 +13,27 @@ class RateLimitException implements Exception {
   }
   RateLimitException.forTime(this.time) {
     cause = sprintf('Request got rate limited for %s', [time]);
+  }
+}
+
+// Provides a handy minimal interface over io.HttpClientResponse
+class PaylikeResponse {
+  late io.HttpClientResponse response;
+  PaylikeResponse.fromIO(this.response);
+  Future<String> getBody() {
+    final completer = Completer<String>();
+    final contents = StringBuffer();
+    response.transform(utf8.decoder).listen((data) {
+      contents.write(data);
+    }, onDone: () => completer.complete(contents.toString()));
+    return completer.future;
+  }
+
+  Stream<String> getBodyReader() {
+    if (response.statusCode == 209) {
+      return Stream.empty();
+    }
+    return response.transform(utf8.decoder);
   }
 }
 
@@ -62,9 +85,6 @@ class RequestOptions {
   }
 }
 
-void setHeadersOnRequest(
-    io.HttpClientRequest request, Map<String, String> headers) {}
-
 // Executes requests
 class PaylikeRequester {
   Function log = (dynamic o) => print(o);
@@ -77,8 +97,7 @@ class PaylikeRequester {
     return this;
   }
 
-  Future<io.HttpClientResponse> request(
-      String endpoint, RequestOptions? opts) async {
+  Future<PaylikeResponse> request(String endpoint, RequestOptions? opts) async {
     opts ??= RequestOptions();
     var url = Uri.parse(endpoint);
     if (opts.query != null) {
@@ -126,9 +145,6 @@ class PaylikeRequester {
       throw TimeoutException('Request timed out', opts.timeout);
     }
     switch (response.statusCode) {
-      case 204:
-        // TODO: No content?
-        break;
       case 429:
         var retryHeaders = response.headers['retry-after'];
         if (retryHeaders != null && retryHeaders.length == 1) {
@@ -136,6 +152,6 @@ class PaylikeRequester {
         }
         throw RateLimitException();
     }
-    return response;
+    return PaylikeResponse.fromIO(response);
   }
 }
