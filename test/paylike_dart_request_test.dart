@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
-import 'dart:io';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:paylike_dart_request/paylike_dart_request.dart';
@@ -134,12 +132,15 @@ void main() {
         return Future.value(mocker.response);
       });
       when(mocker.response.statusCode).thenReturn(429);
+      when(mocker.response.headers).thenReturn(mocker.headers);
+      when(mocker.headers['retry-after']).thenReturn(['20']);
       var opts = RequestOptions().setClient(mocker.client).setVersion(1);
       try {
         await requester.request(TEST_URL, opts);
         fail('exception is not thrown');
       } catch (e) {
-        e is RateLimitException;
+        expect(e is RateLimitException, true);
+        expect((e as RateLimitException).time, '20');
       }
     });
   });
@@ -161,7 +162,7 @@ void main() {
         await requester.request('http://localhost:8080', opts);
         fail('exception is not thrown');
       } catch (e) {
-        e is TimeoutException;
+        expect(e is TimeoutException, true);
       }
       await server.close(force: true);
     });

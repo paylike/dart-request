@@ -5,10 +5,11 @@ import 'dart:io' as io;
 
 class RateLimitException implements Exception {
   late String cause;
+  String? time;
   RateLimitException() {
     cause = 'Request got rate limited';
   }
-  RateLimitException.forTime(String time) {
+  RateLimitException.forTime(this.time) {
     cause = sprintf('Request got rate limited for %s', [time]);
   }
 }
