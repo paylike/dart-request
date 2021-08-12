@@ -31,8 +31,8 @@ class ServerErrorException implements Exception {
 
 // Provides a handy minimal interface over io.HttpClientResponse
 class PaylikeResponse {
-  late io.HttpClientResponse response;
-  PaylikeResponse.fromIO(this.response);
+  io.HttpClientResponse response;
+  PaylikeResponse(this.response);
   Future<String> getBody() {
     final completer = Completer<String>();
     final contents = StringBuffer();
@@ -59,16 +59,11 @@ class RequestOptions {
   int? version;
   Object? data;
   Duration timeout = Duration(seconds: 20);
-  io.HttpClient client = io.HttpClient();
   String clientId = 'dart-1';
   String method = 'GET';
   RequestOptions();
   RequestOptions.fromClientId(String clientId) {
     this.clientId = clientId;
-  }
-  RequestOptions setClient(io.HttpClient client) {
-    this.client = client;
-    return this;
   }
 
   RequestOptions setQuery(Map<String, String> q) {
@@ -101,12 +96,17 @@ class RequestOptions {
 // Executes requests
 class PaylikeRequester {
   Function log = (dynamic o) => print(o);
+  io.HttpClient client = io.HttpClient();
   PaylikeRequester();
-  PaylikeRequester.withLog(Function log) {
-    this.log = log;
-  }
+  PaylikeRequester.withLog(this.log);
+  PaylikeRequester.withClientAndLog(this.client, this.log);
   PaylikeRequester setLog(Function log) {
     this.log = log;
+    return this;
+  }
+
+  PaylikeRequester setClient(io.HttpClient client) {
+    this.client = client;
     return this;
   }
 
@@ -124,10 +124,10 @@ class PaylikeRequester {
     io.HttpClientRequest request;
     switch (opts.method) {
       case 'GET':
-        request = await opts.client.getUrl(url);
+        request = await client.getUrl(url);
         break;
       case 'POST':
-        request = await opts.client.postUrl(url);
+        request = await client.postUrl(url);
         headers = {
           ...headers,
           'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ class PaylikeRequester {
       }
       throw RateLimitException();
     } else if (response.statusCode < 300) {
-      return PaylikeResponse.fromIO(response);
+      return PaylikeResponse(response);
     } else {
       throw ServerErrorException.withHTTPInfo(
           response.statusCode, response.headers);
