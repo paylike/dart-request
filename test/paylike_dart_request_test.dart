@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -177,10 +178,10 @@ void main() {
     });
   });
 
-  group('Requester timeout', () {
+  group('Requester core functionality', () {
     final requester = PaylikeRequester();
 
-    test('Should work seemlessly', () async {
+    test('Timeouts should work seemlessly', () async {
       var handler = Pipeline().addHandler((request) async {
         expect(request.headers['X-Client'], 'dart-1');
         expect(request.headers['Accept-Version'], '1');
@@ -196,6 +197,23 @@ void main() {
       } catch (e) {
         expect(e is TimeoutException, true);
       }
+      await server.close(force: true);
+    });
+
+    test('Response needs to be able to provide body as a string', () async {
+      var handler = Pipeline().addHandler((request) async {
+        return Response(200,
+            body: jsonEncode({
+              'foo': 'bar',
+            }));
+      });
+      var server = await serve(handler, 'localhost', 8080);
+
+      var opts = RequestOptions.v1().setTimeout(Duration(seconds: 2));
+      var response = await requester.request('http://localhost:8080', opts);
+      Map<String, dynamic> body = jsonDecode(await response.getBody());
+      expect(body['foo'], 'bar');
+      response = await requester.request('http://localhost:8080', opts);
       await server.close(force: true);
     });
   });

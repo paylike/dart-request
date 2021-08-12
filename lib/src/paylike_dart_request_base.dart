@@ -20,11 +20,11 @@ class RateLimitException implements Exception {
 class ServerErrorException implements Exception {
   String cause = 'Unexpected server error';
   int? status;
-  Map<String, String>? headers;
+  Map<String, List<String>>? headers;
   ServerErrorException.withHTTPInfo(this.status, io.HttpHeaders headers) {
     this.headers = {};
     headers.forEach((name, values) {
-      headers.add(name, values);
+      this.headers![name] = values;
     });
   }
 }
