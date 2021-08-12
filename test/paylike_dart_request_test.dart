@@ -143,6 +143,30 @@ void main() {
         expect((e as RateLimitException).time, '20');
       }
     });
+
+    test('Should be able to throw an error if an internal server error happens',
+        () async {
+      var mocker = Mocker();
+      when(mocker.client.getUrl(Uri.parse(TEST_URL))).thenAnswer((_) {
+        return Future.value(mocker.request);
+      });
+      when(mocker.request.headers).thenReturn(mocker.headers);
+      when(mocker.headers.add('X-Client', 'dart-1')).thenReturn(true);
+      when(mocker.headers.add('Accept-Version', '1')).thenReturn(true);
+      when(mocker.request.close()).thenAnswer((_) {
+        return Future.value(mocker.response);
+      });
+      when(mocker.response.statusCode).thenReturn(500);
+      when(mocker.response.headers).thenReturn(mocker.headers);
+      var opts = RequestOptions().setClient(mocker.client).setVersion(1);
+      try {
+        await requester.request(TEST_URL, opts);
+        fail('exception is not thrown');
+      } catch (e) {
+        expect(e is ServerErrorException, true);
+        expect((e as ServerErrorException).status, 500);
+      }
+    });
   });
 
   group('Requester timeout', () {

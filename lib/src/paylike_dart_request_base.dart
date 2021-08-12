@@ -11,8 +11,21 @@ class RateLimitException implements Exception {
   RateLimitException() {
     cause = 'Request got rate limited';
   }
-  RateLimitException.forTime(this.time) {
+  RateLimitException.withTime(this.time) {
     cause = sprintf('Request got rate limited for %s', [time]);
+  }
+}
+
+// Indicates that there was an unexpected server error during the communication
+class ServerErrorException implements Exception {
+  String cause = 'Unexpected server error';
+  int? status;
+  Map<String, String>? headers;
+  ServerErrorException.withHTTPInfo(this.status, io.HttpHeaders headers) {
+    this.headers = {};
+    headers.forEach((name, values) {
+      headers.add(name, values);
+    });
   }
 }
 
@@ -144,14 +157,17 @@ class PaylikeRequester {
       request.abort();
       throw TimeoutException('Request timed out', opts.timeout);
     }
-    switch (response.statusCode) {
-      case 429:
-        var retryHeaders = response.headers['retry-after'];
-        if (retryHeaders != null && retryHeaders.length == 1) {
-          throw RateLimitException.forTime(retryHeaders[0]);
-        }
-        throw RateLimitException();
+    if (response.statusCode == 429) {
+      var retryHeaders = response.headers['retry-after'];
+      if (retryHeaders != null && retryHeaders.length == 1) {
+        throw RateLimitException.withTime(retryHeaders[0]);
+      }
+      throw RateLimitException();
+    } else if (response.statusCode < 300) {
+      return PaylikeResponse.fromIO(response);
+    } else {
+      throw ServerErrorException.withHTTPInfo(
+          response.statusCode, response.headers);
     }
-    return PaylikeResponse.fromIO(response);
   }
 }
