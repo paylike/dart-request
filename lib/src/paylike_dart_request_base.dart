@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:sprintf/sprintf.dart';
@@ -8,12 +7,24 @@ import 'dart:io' as io;
 // Indicates that a rate limit has been reached during a request
 class RateLimitException implements Exception {
   late String cause;
-  String? time;
+  Duration? retryAfter;
   RateLimitException() {
     cause = 'Request got rate limited';
   }
-  RateLimitException.withTime(this.time) {
-    cause = sprintf('Request got rate limited for %s', [time]);
+  RateLimitException.withTime(String retryAfter) {
+    cause = sprintf('Request got rate limited for %s', [retryAfter]);
+    this.retryAfter = Duration(milliseconds: int.parse(retryAfter));
+  }
+}
+
+class VersionException implements Exception {
+  late String cause;
+  late int givenVersion;
+  VersionException(int givenVersion) {
+    cause = sprintf(
+        'Unexpected "version", got "%d" expected a positive integer',
+        [givenVersion]);
+    this.givenVersion = givenVersion;
   }
 }
 
@@ -90,9 +101,7 @@ class RequestOptions {
 
   RequestOptions setVersion(int version) {
     if (version < 1) {
-      throw (sprintf(
-          'Unexpected "version", got "%d" expected a positive integer',
-          [version]));
+      throw VersionException(version);
     }
     this.version = version;
     return this;

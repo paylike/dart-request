@@ -6,7 +6,6 @@ import 'package:mockito/mockito.dart';
 import 'package:paylike_dart_request/paylike_dart_request.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
-import 'package:sprintf/sprintf.dart';
 import 'package:test/test.dart';
 
 import 'paylike_dart_request_test.mocks.dart';
@@ -27,12 +26,14 @@ class Mocker {
 void main() {
   const TEST_URL = 'http://foo';
   group('Requester setup tests', () {
-    test('Should not be able to set a version under 1', () async {
-      expect(
-          () => RequestOptions().setVersion(0),
-          throwsA(sprintf(
-              'Unexpected "version", got "%d" expected a positive integer',
-              [0])));
+    test('Should not be able to set a version under 1', () {
+      try {
+        RequestOptions().setVersion(0);
+        fail('should have thrown a version exception');
+      } catch (e) {
+        expect(e is VersionException, true);
+        expect((e as VersionException).givenVersion, 0);
+      }
     });
 
     test('Should be able to attach essential headers to requests', () async {
@@ -147,7 +148,8 @@ void main() {
         fail('exception is not thrown');
       } catch (e) {
         expect(e is RateLimitException, true);
-        expect((e as RateLimitException).time, '20');
+        expect(
+            (e as RateLimitException).retryAfter, Duration(milliseconds: 20));
       }
     });
 
