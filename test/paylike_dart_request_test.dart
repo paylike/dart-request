@@ -216,7 +216,8 @@ void main() {
       await server.close(force: true);
     });
 
-    test('Response needs to be able to provide body as object stream',
+    test(
+        'Response needs to be able to provide body as object stream if the body is array',
         () async {
       var testArray = [1, 2, 3, 4];
       var handler = Pipeline().addHandler((request) async {
@@ -230,6 +231,24 @@ void main() {
       await reader.forEach((element) {
         expect(element is int, true);
         expect(testArray.contains(element), true);
+      });
+      await server.close(force: true);
+    });
+
+    test(
+        'Response needs to be able to provide body as object stream if the body is object',
+        () async {
+      var handler = Pipeline().addHandler((request) async {
+        return Response(200, body: jsonEncode({'foo': 'bar'}));
+      });
+      var server = await serve(handler, 'localhost', 8080);
+
+      var opts = RequestOptions.v1().setTimeout(Duration(seconds: 2));
+      var response = await requester.request('http://localhost:8080', opts);
+      var reader = await response.getBodyReader();
+      await reader.forEach((element) {
+        expect(element is Map, true);
+        expect(element, {'foo': 'bar'});
       });
       await server.close(force: true);
     });
