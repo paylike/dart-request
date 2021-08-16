@@ -1,20 +1,15 @@
 name: paylike_dart_request
-description: A starting point for Dart libraries or applications.
+description: Low level API client for Paylike
 version: 1.0.0
-# homepage: https://www.example.com
-
+homepage: https://paylike.io
 environment:
   sdk: '>=2.12.0 <3.0.0'
-
-# dependencies:
-#   path: ^1.8.0
-
 dev_dependencies:
   build_runner: ^2.1.0
+  mockito: ^5.0.13
   pedantic: ^1.10.0
   shelf: ^1.2.0
   test: ^1.16.0
 dependencies: 
   http: ^0.13.3
-  mockito: ^5.0.13
   sprintf: ^6.0.0
