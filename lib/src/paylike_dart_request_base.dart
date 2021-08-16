@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:sprintf/sprintf.dart';
@@ -42,11 +43,16 @@ class PaylikeResponse {
     return completer.future;
   }
 
-  Stream<String> getBodyReader() {
+  Future<Stream<dynamic>> getBodyReader() async {
     if (response.statusCode == 209) {
-      return Stream.empty();
+      return Future.value(Stream.empty());
     }
-    return response.transform(utf8.decoder);
+
+    var decoded = jsonDecode(await getBody());
+    if (decoded is List) {
+      return Stream.fromIterable(decoded);
+    }
+    return Stream.value(decoded);
   }
 }
 

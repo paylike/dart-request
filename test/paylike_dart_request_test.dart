@@ -213,7 +213,24 @@ void main() {
       var response = await requester.request('http://localhost:8080', opts);
       Map<String, dynamic> body = jsonDecode(await response.getBody());
       expect(body['foo'], 'bar');
-      response = await requester.request('http://localhost:8080', opts);
+      await server.close(force: true);
+    });
+
+    test('Response needs to be able to provide body as object stream',
+        () async {
+      var testArray = [1, 2, 3, 4];
+      var handler = Pipeline().addHandler((request) async {
+        return Response(200, body: jsonEncode(testArray));
+      });
+      var server = await serve(handler, 'localhost', 8080);
+
+      var opts = RequestOptions.v1().setTimeout(Duration(seconds: 2));
+      var response = await requester.request('http://localhost:8080', opts);
+      var reader = await response.getBodyReader();
+      await reader.forEach((element) {
+        expect(element is int, true);
+        expect(testArray.contains(element), true);
+      });
       await server.close(force: true);
     });
   });
