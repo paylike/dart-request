@@ -147,7 +147,6 @@ class PaylikeRequester {
           ...headers,
           'Content-Type': 'application/json',
         };
-        request.write(opts.data);
         break;
       default:
         throw ('Unexpected error');
@@ -155,6 +154,9 @@ class PaylikeRequester {
     headers.forEach((key, value) {
       request.headers.add(key, value);
     });
+    if (opts.method == 'POST') {
+      request.write(opts.data);
+    }
     io.HttpClientResponse response;
     try {
       log({
