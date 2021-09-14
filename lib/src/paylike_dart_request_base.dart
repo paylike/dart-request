@@ -155,7 +155,7 @@ class PaylikeRequester {
       request.headers.add(key, value);
     });
     if (opts.method == 'POST') {
-      request.write(opts.data);
+      request.write(jsonEncode(opts.data));
     }
     io.HttpClientResponse response;
     try {
