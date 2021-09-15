@@ -2,6 +2,8 @@
 
 For a higher-level client see https://pub.dev.
 
+*This implementation is based on [Paylike/JS-Request](https://github.com/paylike/js-request)*
+
 This is a low-level library used for making HTTP(s) requests to Paylike APIs. It
 incorporates the conventions described in the
 [Paylike API reference](https://github.com/paylike/api-reference).
