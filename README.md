@@ -156,10 +156,7 @@ try {
 
   Has `status` and `headers` properties copied from the io.HttpClientResponse
 
-
-
---- Currently not supported
-- `ResponseError`
+- `PaylikeException`
 
   These errors correspond to
   [status codes](https://github.com/paylike/api-reference/blob/master/status-codes.md)

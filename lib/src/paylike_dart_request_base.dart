@@ -17,6 +17,7 @@ class RateLimitException implements Exception {
   }
 }
 
+// VersionException indicates that an unexpected version was used when calling the API
 class VersionException implements Exception {
   late String cause;
   late int givenVersion;
@@ -38,6 +39,20 @@ class ServerErrorException implements Exception {
     headers.forEach((name, values) {
       this.headers![name] = values;
     });
+  }
+}
+
+// PaylikeException originates from paylike servers
+class PaylikeException implements Exception {
+  late String cause;
+  late String code;
+  late int statusCode;
+  late List<String> errors;
+  PaylikeException(Map<String, dynamic> body, int statusCode) {
+    statusCode = statusCode;
+    cause = body['message'];
+    code = body['code'];
+    errors = body['errors'] ?? [];
   }
 }
 
@@ -183,8 +198,14 @@ class PaylikeRequester {
     } else if (response.statusCode < 300) {
       return PaylikeResponse(response);
     } else {
-      throw ServerErrorException.withHTTPInfo(
+      Exception exception = ServerErrorException.withHTTPInfo(
           response.statusCode, response.headers);
+      try {
+        var parsed = PaylikeResponse(response);
+        Map<String, dynamic> body = jsonDecode(await parsed.getBody());
+        exception = PaylikeException(body, response.statusCode);
+      } catch (_) {}
+      throw exception;
     }
   }
 }
