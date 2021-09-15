@@ -52,7 +52,7 @@ class PaylikeException implements Exception {
     statusCode = statusCode;
     cause = body['message'];
     code = body['code'];
-    errors = body['errors'] ?? [];
+    errors = ((body['errors'] ?? []) as List<dynamic>).cast<String>();
   }
 }
 

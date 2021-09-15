@@ -1,3 +1,7 @@
+## 1.0.4
+
+- Fixed an issue with casting errors list in PaylikeException
+
 ## 1.0.3
 
 - Added PaylikeException as the general paylike API response error
