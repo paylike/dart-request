@@ -1,3 +1,7 @@
+## 1.0.5
+
+- Added generated doc
+
 ## 1.0.4
 
 - Fixed an issue with casting errors list in PaylikeException
