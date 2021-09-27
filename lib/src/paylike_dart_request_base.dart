@@ -4,23 +4,26 @@ import 'dart:convert';
 import 'package:sprintf/sprintf.dart';
 import 'dart:io' as io;
 
-// Indicates that a rate limit has been reached during a request
+// Indicates that a rate limit has been reached during a request.
 class RateLimitException implements Exception {
   late String cause;
   Duration? retryAfter;
   RateLimitException() {
     cause = 'Request got rate limited';
   }
+  // Creates a RateLimitException from the provided string
+  // which is supposed in ms.
   RateLimitException.withTime(String retryAfter) {
     cause = sprintf('Request got rate limited for %s', [retryAfter]);
     this.retryAfter = Duration(milliseconds: int.parse(retryAfter));
   }
 }
 
-// VersionException indicates that an unexpected version was used when calling the API
+// VersionException indicates that an unexpected version was used when calling the API.
 class VersionException implements Exception {
   late String cause;
   late int givenVersion;
+  // Creates a VersionException from the provided mismatched version.
   VersionException(int givenVersion) {
     cause = sprintf(
         'Unexpected "version", got "%d" expected a positive integer',
@@ -29,11 +32,12 @@ class VersionException implements Exception {
   }
 }
 
-// Indicates that there was an unexpected server error during the communication
+// Indicates that there was an unexpected server error during the communication.
 class ServerErrorException implements Exception {
   String cause = 'Unexpected server error';
   int? status;
   Map<String, List<String>>? headers;
+  // Creates a ServerErrorException with HTTP info attached.
   ServerErrorException.withHTTPInfo(this.status, io.HttpHeaders headers) {
     this.headers = {};
     headers.forEach((name, values) {
@@ -42,12 +46,13 @@ class ServerErrorException implements Exception {
   }
 }
 
-// PaylikeException originates from paylike servers
+// PaylikeException originates from paylike servers.
 class PaylikeException implements Exception {
   late String cause;
   late String code;
   late int statusCode;
   late List<String> errors;
+  // Creates a PaylikeException from the body and statusCode.
   PaylikeException(Map<String, dynamic> body, int statusCode) {
     statusCode = statusCode;
     cause = body['message'];
@@ -56,10 +61,11 @@ class PaylikeException implements Exception {
   }
 }
 
-// Provides a handy minimal interface over io.HttpClientResponse
+// Provides a handy minimal interface over io.HttpClientResponse.
 class PaylikeResponse {
   io.HttpClientResponse response;
   PaylikeResponse(this.response);
+  // Provides response body in a string.
   Future<String> getBody() {
     final completer = Completer<String>();
     final contents = StringBuffer();
@@ -69,6 +75,7 @@ class PaylikeResponse {
     return completer.future;
   }
 
+  // Provides response body in a stream.
   Future<Stream<dynamic>> getBodyReader() async {
     if (response.statusCode == 209) {
       return Future.value(Stream.empty());
@@ -84,6 +91,7 @@ class PaylikeResponse {
 
 // Provides configuraton options for PaylikeRequester
 class RequestOptions {
+  // Creates a version 1 API
   RequestOptions.v1() {
     version = 1;
   }
@@ -94,26 +102,30 @@ class RequestOptions {
   String clientId = 'dart-1';
   String method = 'GET';
   RequestOptions();
+  // Creates request options from Client ID
   RequestOptions.fromClientId(String clientId) {
     this.clientId = clientId;
   }
-
+  // Sets query parameters
   RequestOptions setQuery(Map<String, String> q) {
     query = q;
     return this;
   }
 
+  // Sets a custom timeout
   RequestOptions setTimeout(Duration timeout) {
     this.timeout = timeout;
     return this;
   }
 
+  // Sets JSON body
   RequestOptions setData(Object d) {
     data = d;
     method = 'POST';
     return this;
   }
 
+  // Sets version for the API
   RequestOptions setVersion(int version) {
     if (version < 1) {
       throw VersionException(version);
@@ -123,23 +135,28 @@ class RequestOptions {
   }
 }
 
-// Executes requests
+// Used for orchestration the execution of requests.
 class PaylikeRequester {
   Function log = (dynamic o) => print(o);
   io.HttpClient client = io.HttpClient();
   PaylikeRequester();
+  // Creates a PaylikeRequester with custom log.
   PaylikeRequester.withLog(this.log);
+  // Creates a PaylikeRequester with custom log and client ID.
   PaylikeRequester.withClientAndLog(this.client, this.log);
+  // Sets a custom logging function on a PaylikeRequester instance.
   PaylikeRequester setLog(Function log) {
     this.log = log;
     return this;
   }
 
+  // Sets a client ID on a PaylikeRequester instance.
   PaylikeRequester setClient(io.HttpClient client) {
     this.client = client;
     return this;
   }
 
+  // Executes request toward a given endpoint with given request options and returns a PaylikeResponse
   Future<PaylikeResponse> request(String endpoint, RequestOptions? opts) async {
     opts ??= RequestOptions();
     var url = Uri.parse(endpoint);

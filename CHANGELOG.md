@@ -1,3 +1,8 @@
+## 1.0.7
+
+- Added extra documention to comply with pub scores
+- Changed pubspec description to match character limit
+
 ## 1.0.6
 
 - Removed unnecessary http dependency
