@@ -233,6 +233,7 @@ class PaylikeRequester {
       request = await client.postUrl(url);
       // it's polite to send the body length to the server
       request.headers.set('Content-Length', bodyBytes.length.toString());
+      request.headers.set('Content-Type', 'application/x-www-form-urlencoded');
       // todo add other headers here
       request.add(bodyBytes);
     } else {

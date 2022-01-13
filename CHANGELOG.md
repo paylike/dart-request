@@ -1,3 +1,8 @@
+## 1.0.8
+
+- Added support for sending form data
+- Removed unnecessary sprintf dependency
+
 ## 1.0.7
 
 - Added extra documention to comply with pub scores
