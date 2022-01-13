@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:paylike_dart_request/paylike_dart_request.dart';
 import 'package:sprintf/sprintf.dart';
 import 'dart:io' as io;
 
@@ -97,11 +98,24 @@ class RequestOptions {
   }
   Map<String, String>? query;
   int? version;
-  Object? data;
+  dynamic data;
   Duration timeout = Duration(seconds: 20);
   String clientId = 'dart-1';
   String method = 'GET';
-  RequestOptions();
+  bool form = false;
+  Map<String, String>? formFields;
+
+  RequestOptions({
+    this.version = 1,
+    this.query,
+    this.data,
+    this.timeout = const Duration(seconds: 20),
+    this.clientId = 'dart-1',
+    this.method = 'GET',
+    this.form = false,
+    this.formFields,
+  });
+
   // Creates request options from Client ID
   RequestOptions.fromClientId(String clientId) {
     this.clientId = clientId;
@@ -122,6 +136,12 @@ class RequestOptions {
   RequestOptions setData(Object d) {
     data = d;
     method = 'POST';
+    return this;
+  }
+
+  // Sets form data usage
+  RequestOptions useForm() {
+    form = true;
     return this;
   }
 
@@ -156,39 +176,12 @@ class PaylikeRequester {
     return this;
   }
 
-  // Executes request toward a given endpoint with given request options and returns a PaylikeResponse
-  Future<PaylikeResponse> request(String endpoint, RequestOptions? opts) async {
-    opts ??= RequestOptions();
-    var url = Uri.parse(endpoint);
-    if (opts.query != null) {
-      url.replace(queryParameters: opts.query);
-    }
-    var headers = {
-      'X-Client': opts.clientId,
-      'Accept-Version': opts.version.toString(),
-    };
-
-    io.HttpClientRequest request;
-    switch (opts.method) {
-      case 'GET':
-        request = await client.getUrl(url);
-        break;
-      case 'POST':
-        request = await client.postUrl(url);
-        headers = {
-          ...headers,
-          'Content-Type': 'application/json',
-        };
-        break;
-      default:
-        throw ('Unexpected error');
-    }
-    headers.forEach((key, value) {
-      request.headers.add(key, value);
-    });
-    if (opts.method == 'POST') {
-      request.write(jsonEncode(opts.data));
-    }
+  // Executes the requests created by [PaylikeRequester.request]
+  Future<PaylikeResponse> _executeRequest({
+    required Uri url,
+    required RequestOptions opts,
+    required io.HttpClientRequest request,
+  }) async {
     io.HttpClientResponse response;
     try {
       log({
@@ -224,5 +217,57 @@ class PaylikeRequester {
       } catch (_) {}
       throw exception;
     }
+  }
+
+  // Executes request toward a given endpoint with given request options and returns a PaylikeResponse
+  Future<PaylikeResponse> request(String endpoint, RequestOptions? opts) async {
+    opts ??= RequestOptions();
+    var url = Uri.parse(endpoint);
+    io.HttpClientRequest? request;
+    if (opts.form) {
+      if (opts.formFields == null) {
+        throw Exception('Cannot make a request as a form without formFields');
+      }
+      var formBodyParts = (opts.formFields as Map<String, String>)
+          .keys
+          .map((key) =>
+              '$key=${Uri.encodeQueryComponent(opts?.formFields?[key] as String)}')
+          .toList();
+      var bodyBytes = utf8.encode(formBodyParts.join('&')); // utf8 encode
+      request = await client.postUrl(url);
+      // it's polite to send the body length to the server
+      request.headers.set('Content-Length', bodyBytes.length.toString());
+      // todo add other headers here
+      request.add(bodyBytes);
+    } else {
+      if (opts.query != null) {
+        url.replace(queryParameters: opts.query);
+      }
+      var headers = {
+        'X-Client': opts.clientId,
+        'Accept-Version': opts.version.toString(),
+      };
+      switch (opts.method) {
+        case 'GET':
+          request = await client.getUrl(url);
+          break;
+        case 'POST':
+          request = await client.postUrl(url);
+          headers = {
+            ...headers,
+            'Content-Type': 'application/json',
+          };
+          break;
+        default:
+          throw ('Unexpected error');
+      }
+      headers.forEach((key, value) {
+        request?.headers.add(key, value);
+      });
+      if (opts.method == 'POST') {
+        request.write(jsonEncode(opts.data));
+      }
+    }
+    return _executeRequest(url: url, opts: opts, request: request);
   }
 }

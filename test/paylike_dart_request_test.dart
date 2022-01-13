@@ -218,6 +218,23 @@ void main() {
       await server.close(force: true);
     });
 
+    test('Requester should be able to send out forms', () async {
+      var handler = Pipeline().addHandler((request) async {
+        expect(await request.readAsString(), 'foo=bar');
+        return Response(200,
+            body: jsonEncode({
+              'foo': 'bar',
+            }));
+      });
+      var server = await serve(handler, 'localhost', 8080);
+
+      var opts = RequestOptions(form: true, formFields: {'foo': 'bar'});
+      var response = await requester.request('http://localhost:8080', opts);
+      Map<String, dynamic> body = jsonDecode(await response.getBody());
+      expect(body['foo'], 'bar');
+      await server.close(force: true);
+    });
+
     test(
         'Response needs to be able to provide body as object stream if the body is array',
         () async {
