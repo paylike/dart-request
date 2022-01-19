@@ -51,7 +51,7 @@ class PaylikeException implements Exception {
   late List<String> errors;
   // Creates a PaylikeException from the body and statusCode.
   PaylikeException(Map<String, dynamic> body, int statusCode) {
-    statusCode = statusCode;
+    this.statusCode = statusCode;
     cause = body['message'];
     code = body['code'];
     errors = ((body['errors'] ?? []) as List<dynamic>).cast<String>();
@@ -153,7 +153,9 @@ class RequestOptions {
 
 // Used for orchestration the execution of requests.
 class PaylikeRequester {
-  Function log = (dynamic o) => print(o);
+  Function log = (dynamic o) => print('''
+  ${jsonEncode(o)}
+  ''');
   io.HttpClient client = io.HttpClient();
   PaylikeRequester();
   // Creates a PaylikeRequester with custom log.
@@ -179,13 +181,17 @@ class PaylikeRequester {
     required io.HttpClientRequest request,
   }) async {
     io.HttpClientResponse response;
+    var op = {
+      't': 'request',
+      'method': opts.method,
+      'url': url.toString(),
+      'timeout': opts.timeout.toString(),
+      'form': opts.form.toString(),
+      'formFields': opts.formFields,
+      'headers': request.headers.toString(),
+    };
     try {
-      log({
-        't': 'request',
-        'method': opts.method,
-        'url': url,
-        'timeout': opts.timeout
-      });
+      log(op);
       if (opts.timeout.inSeconds == 0) {
         response = await request.close();
       } else {

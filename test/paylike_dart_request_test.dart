@@ -118,8 +118,8 @@ void main() {
           PaylikeRequester.withClientAndLog(mocker.client, (dynamic o) {
         expect(o['t'], 'request');
         expect(o['method'], 'GET');
-        expect(o['url'], Uri.parse(TEST_URL));
-        expect(o['timeout'], Duration(seconds: 20));
+        expect(o['url'], Uri.parse(TEST_URL).toString());
+        expect(o['timeout'], Duration(seconds: 20).toString());
       });
       var opts = RequestOptions.v1();
       await loggingRequester.request(TEST_URL, opts);

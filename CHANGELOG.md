@@ -1,3 +1,8 @@
+## 1.0.9
+
+- Fixed an issue with PaylikeException status code
+- Added a more extensive logging mechanism
+
 ## 1.0.8
 
 - Added support for sending form data
