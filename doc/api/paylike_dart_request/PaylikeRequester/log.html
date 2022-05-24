@@ -60,7 +60,9 @@
         
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Function log = (dynamic o) =&gt; print(o);
+  <pre class="language-dart"><code class="language-dart">Function log = (dynamic o) =&gt; print(&#39;&#39;&#39;
+${jsonEncode(o)}
+&#39;&#39;&#39;);
 
 </code></pre>
 </section>
@@ -125,7 +127,7 @@
 <footer>
   <span class="no-break">
     paylike_dart_request
-      1.0.7
+      1.0.9
   </span>
 
   

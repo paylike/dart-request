@@ -61,7 +61,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">RateLimitException.withTime(String retryAfter) {
-  cause = sprintf(&#39;Request got rate limited for %s&#39;, [retryAfter]);
+  cause = &#39;Request got rate limited for $retryAfter&#39;;
   this.retryAfter = Duration(milliseconds: int.parse(retryAfter));
 }</code></pre>
 </section>
@@ -122,7 +122,7 @@
 <footer>
   <span class="no-break">
     paylike_dart_request
-      1.0.7
+      1.0.9
   </span>
 
   

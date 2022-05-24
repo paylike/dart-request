@@ -62,7 +62,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">PaylikeException(Map&lt;String, dynamic&gt; body, int statusCode) {
-  statusCode = statusCode;
+  this.statusCode = statusCode;
   cause = body[&#39;message&#39;];
   code = body[&#39;code&#39;];
   errors = ((body[&#39;errors&#39;] ?? []) as List&lt;dynamic&gt;).cast&lt;String&gt;();
@@ -126,7 +126,7 @@
 <footer>
   <span class="no-break">
     paylike_dart_request
-      1.0.7
+      1.0.9
   </span>
 
   

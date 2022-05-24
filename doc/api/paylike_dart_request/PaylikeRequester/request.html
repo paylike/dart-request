@@ -69,70 +69,53 @@
   <pre class="language-dart"><code class="language-dart">Future&lt;PaylikeResponse&gt; request(String endpoint, RequestOptions? opts) async {
   opts ??= RequestOptions();
   var url = Uri.parse(endpoint);
-  if (opts.query != null) {
-    url.replace(queryParameters: opts.query);
-  }
-  var headers = {
-    &#39;X-Client&#39;: opts.clientId,
-    &#39;Accept-Version&#39;: opts.version.toString(),
-  };
-
-  io.HttpClientRequest request;
-  switch (opts.method) {
-    case &#39;GET&#39;:
-      request = await client.getUrl(url);
-      break;
-    case &#39;POST&#39;:
-      request = await client.postUrl(url);
-      headers = {
-        ...headers,
-        &#39;Content-Type&#39;: &#39;application&#47;json&#39;,
-      };
-      break;
-    default:
-      throw (&#39;Unexpected error&#39;);
-  }
-  headers.forEach((key, value) {
-    request.headers.add(key, value);
-  });
-  if (opts.method == &#39;POST&#39;) {
-    request.write(jsonEncode(opts.data));
-  }
-  io.HttpClientResponse response;
-  try {
-    log({
-      &#39;t&#39;: &#39;request&#39;,
-      &#39;method&#39;: opts.method,
-      &#39;url&#39;: url,
-      &#39;timeout&#39;: opts.timeout
-    });
-    if (opts.timeout.inSeconds == 0) {
-      response = await request.close();
-    } else {
-      response = await request.close().timeout(opts.timeout);
+  io.HttpClientRequest? request;
+  if (opts.form) {
+    if (opts.formFields == null) {
+      throw Exception(&#39;Cannot make a request as a form without formFields&#39;);
     }
-  } on TimeoutException catch (_) {
-    request.abort();
-    throw TimeoutException(&#39;Request timed out&#39;, opts.timeout);
-  }
-  if (response.statusCode == 429) {
-    var retryHeaders = response.headers[&#39;retry-after&#39;];
-    if (retryHeaders != null &amp;&amp; retryHeaders.length == 1) {
-      throw RateLimitException.withTime(retryHeaders[0]);
-    }
-    throw RateLimitException();
-  } else if (response.statusCode &lt; 300) {
-    return PaylikeResponse(response);
+    var formBodyParts = (opts.formFields as Map&lt;String, String&gt;)
+        .keys
+        .map((key) =&gt;
+            &#39;$key=${Uri.encodeQueryComponent(opts?.formFields?[key] as String)}&#39;)
+        .toList();
+    var bodyBytes = utf8.encode(formBodyParts.join(&#39;&amp;&#39;)); &#47;&#47; utf8 encode
+    request = await client.postUrl(url);
+    &#47;&#47; it&#39;s polite to send the body length to the server
+    request.headers.set(&#39;Content-Length&#39;, bodyBytes.length.toString());
+    request.headers.set(&#39;Content-Type&#39;, &#39;application&#47;x-www-form-urlencoded&#39;);
+    &#47;&#47; todo add other headers here
+    request.add(bodyBytes);
   } else {
-    Exception exception = ServerErrorException.withHTTPInfo(
-        response.statusCode, response.headers);
-    try {
-      var parsed = PaylikeResponse(response);
-      Map&lt;String, dynamic&gt; body = jsonDecode(await parsed.getBody());
-      exception = PaylikeException(body, response.statusCode);
-    } catch (_) {}
-    throw exception;
+    if (opts.query != null) {
+      url.replace(queryParameters: opts.query);
+    }
+    var headers = {
+      &#39;X-Client&#39;: opts.clientId,
+      &#39;Accept-Version&#39;: opts.version.toString(),
+    };
+    switch (opts.method) {
+      case &#39;GET&#39;:
+        request = await client.getUrl(url);
+        break;
+      case &#39;POST&#39;:
+        request = await client.postUrl(url);
+        headers = {
+          ...headers,
+          &#39;Content-Type&#39;: &#39;application&#47;json&#39;,
+        };
+        break;
+      default:
+        throw (&#39;Unexpected error&#39;);
+    }
+    headers.forEach((key, value) {
+      request?.headers.add(key, value);
+    });
+    if (opts.method == &#39;POST&#39;) {
+      request.write(jsonEncode(opts.data));
+    }
   }
+  return _executeRequest(url: url, opts: opts, request: request);
 }</code></pre>
 </section>
 
@@ -196,7 +179,7 @@
 <footer>
   <span class="no-break">
     paylike_dart_request
-      1.0.7
+      1.0.9
   </span>
 
   

@@ -61,9 +61,8 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">VersionException(int givenVersion) {
-  cause = sprintf(
-      &#39;Unexpected &quot;version&quot;, got &quot;%d&quot; expected a positive integer&#39;,
-      [givenVersion]);
+  cause =
+      &#39;Unexpected &quot;version&quot;, got $givenVersion expected a positive integer&#39;;
   this.givenVersion = givenVersion;
 }</code></pre>
 </section>
@@ -123,7 +122,7 @@
 <footer>
   <span class="no-break">
     paylike_dart_request
-      1.0.7
+      1.0.9
   </span>
 
   

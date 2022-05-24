@@ -1,3 +1,7 @@
+## 1.0.10
+
+- Refactored codebase a bit to make it easier to export exceptions from the higher level libraries
+
 ## 1.0.9
 
 - Fixed an issue with PaylikeException status code

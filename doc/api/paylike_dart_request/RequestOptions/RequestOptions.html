@@ -50,7 +50,15 @@
 </h1></div>
 
     <section class="multi-line-signature">
-      <span class="name ">RequestOptions</span>(<wbr>)
+      <span class="name ">RequestOptions</span>(<wbr><ol class="parameter-list"><li><span class="parameter" id="-param-version">{<span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/int-class.html">int</a>?</span> <span class="parameter-name">version</span> = <span class="default-value">1</span>, </span></li>
+<li><span class="parameter" id="-param-query"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?</span> <span class="parameter-name">query</span>, </span></li>
+<li><span class="parameter" id="-param-data"><span class="type-annotation">dynamic</span> <span class="parameter-name">data</span>, </span></li>
+<li><span class="parameter" id="-param-timeout"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Duration-class.html">Duration</a></span> <span class="parameter-name">timeout</span> = <span class="default-value">const Duration(seconds: 20)</span>, </span></li>
+<li><span class="parameter" id="-param-clientId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">clientId</span> = <span class="default-value">&#39;dart-1&#39;</span>, </span></li>
+<li><span class="parameter" id="-param-method"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">method</span> = <span class="default-value">&#39;GET&#39;</span>, </span></li>
+<li><span class="parameter" id="-param-form"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">form</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="-param-formFields"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>&gt;</span>?</span> <span class="parameter-name">formFields</span>}</span></li>
+</ol>)
     </section>
 
     
@@ -59,7 +67,16 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">RequestOptions();</code></pre>
+  <pre class="language-dart"><code class="language-dart">RequestOptions({
+  this.version = 1,
+  this.query,
+  this.data,
+  this.timeout = const Duration(seconds: 20),
+  this.clientId = &#39;dart-1&#39;,
+  this.method = &#39;GET&#39;,
+  this.form = false,
+  this.formFields,
+});</code></pre>
 </section>
 
 
@@ -94,6 +111,8 @@
     </li>
     <li><a href="../../paylike_dart_request/RequestOptions/clientId.html">clientId</a></li>
     <li><a href="../../paylike_dart_request/RequestOptions/data.html">data</a></li>
+    <li><a href="../../paylike_dart_request/RequestOptions/form.html">form</a></li>
+    <li><a href="../../paylike_dart_request/RequestOptions/formFields.html">formFields</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/hashCode.html">hashCode</a></li>
     <li><a href="../../paylike_dart_request/RequestOptions/method.html">method</a></li>
     <li><a href="../../paylike_dart_request/RequestOptions/query.html">query</a></li>
@@ -108,6 +127,7 @@
     <li><a href="../../paylike_dart_request/RequestOptions/setTimeout.html">setTimeout</a></li>
     <li><a href="../../paylike_dart_request/RequestOptions/setVersion.html">setVersion</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/toString.html">toString</a></li>
+    <li><a href="../../paylike_dart_request/RequestOptions/useForm.html">useForm</a></li>
 
     <li class="section-title inherited"><a href="../../paylike_dart_request/RequestOptions-class.html#operators">Operators</a></li>
     <li class="inherited"><a href="https://api.flutter.dev/flutter/dart-core/Object/operator_equals.html">operator ==</a></li>
@@ -127,7 +147,7 @@
 <footer>
   <span class="no-break">
     paylike_dart_request
-      1.0.7
+      1.0.9
   </span>
 
   
